@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rappi Store Availability</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+
+<body>
+
+  <!-- LOADING -->
+  <div id="loadingOverlay">
+    <div class="loader-logo">RAPPI // STORE AVAILABILITY</div>
+    <div class="loader-bar">
+      <div class="loader-fill" id="loaderFill"></div>
+    </div>
+    <div class="loader-msg" id="loaderMsg">Conectando con la base de datos...</div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      RAPPI&nbsp;/&nbsp;STORE AVAILABILITY DASHBOARD
+    </div>
+    <div class="header-right">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+        <span id="themeIcon">🌙</span>
+      </button>
+      <div class="api-key-wrapper">
+        <label>ANTHROPIC KEY</label>
+        <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ═══════════ COL IZQUIERDA ═══════════ -->
+    <div class="col-left">
+
+      <!-- KPIs -->
+      <div class="card">
+        <div class="card-title"><span>◆</span> ESTADO GENERAL</div>
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi">
+            <div class="kpi-label">Período</div>
+            <div class="kpi-value accent" id="kpiPeriod">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Promedio</div>
+            <div class="kpi-value" id="kpiAvg">—</div>
+            <div class="kpi-sub">tiendas visibles</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Máximo</div>
+            <div class="kpi-value green" id="kpiMax">—</div>
+            <div class="kpi-sub">pico histórico</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Mínimo</div>
+            <div class="kpi-value red" id="kpiMin">—</div>
+            <div class="kpi-sub">valle histórico</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÍNDICE DE SALUD OPERACIONAL -->
+      <div class="card">
+        <div class="card-title"><span>◆</span> ÍNDICE DE SALUD OPERACIONAL</div>
+        <div class="health-score-layout">
+          <div class="gauge-wrap">
+            <canvas id="healthGauge"></canvas>
+            <div class="gauge-center">
+              <div class="gauge-number" id="healthNumber">—</div>
+              <div class="gauge-label" id="healthLabel">CARGANDO</div>
+            </div>
+          </div>
+          <div class="health-components">
+            <div class="component-bar">
+              <span class="component-label">Estabilidad</span>
+              <div class="bar-track">
+                <div class="bar-fill" id="barStability"></div>
+              </div>
+              <span class="component-pct" id="pctStability">—</span>
+            </div>
+            <div class="component-bar">
+              <span class="component-label">Confiabilidad</span>
+              <div class="bar-track">
+                <div class="bar-fill" id="barReliability"></div>
+              </div>
+              <span class="component-pct" id="pctReliability">—</span>
+            </div>
+            <div class="component-bar">
+              <span class="component-label">Cobertura</span>
+              <div class="bar-track">
+                <div class="bar-fill" id="barCoverage"></div>
+              </div>
+              <span class="component-pct" id="pctCoverage">—</span>
+            </div>
+            <div class="health-meta" id="healthMeta"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIMULADOR DE IMPACTO DE NEGOCIO -->
+      <div class="card">
+        <div class="card-title"><span>◆</span> SIMULADOR DE IMPACTO DE NEGOCIO</div>
+        <div class="simulator-layout">
+          <div class="sim-controls">
+            <div class="sim-param">
+              <label class="sim-label">TICKET PROMEDIO POR PEDIDO (COP)</label>
+              <input type="range" id="simTicket" min="5000" max="80000" step="1000" value="25000"
+                oninput="recalcImpact()" />
+              <span class="sim-val" id="simTicketVal">$25,000</span>
+            </div>
+            <div class="sim-param">
+              <label class="sim-label">PEDIDOS POR TIENDA POR HORA</label>
+              <input type="range" id="simOrders" min="0.1" max="10" step="0.1" value="2" oninput="recalcImpact()" />
+              <span class="sim-val" id="simOrdersVal">2.0</span>
+            </div>
+            <p class="sim-disclaimer">* Estimación basada en los eventos de caída detectados. Ajusta los parámetros
+              según los valores reales del negocio.</p>
+          </div>
+          <div class="sim-results">
+            <div class="impact-card">
+              <div class="impact-label">INGRESOS ESTIMADOS PERDIDOS</div>
+              <div class="impact-value" id="impactRevenue">—</div>
+              <div class="impact-sub">durante eventos de caída detectados</div>
+            </div>
+            <div class="impact-stats">
+              <div class="istat">
+                <div class="istat-val" id="impactEvents">—</div>
+                <div class="istat-label">Eventos de caída</div>
+              </div>
+              <div class="istat">
+                <div class="istat-val" id="impactStores">—</div>
+                <div class="istat-label">Tiendas afect. prom.</div>
+              </div>
+              <div class="istat">
+                <div class="istat-val" id="impactMinutes">—</div>
+                <div class="istat-label">Minutos de caída</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERIE DE TIEMPO -->
+      <div class="card">
+        <div class="card-title"><span>◆</span> EVOLUCIÓN DE TIENDAS ACTIVAS</div>
+        <div class="filter-bar">
+          <div class="range-group">
+            <label>RANGO</label>
+            <input type="range" id="dayRange" min="1" max="10" value="10"
+              oninput="updateDayLabel(this.value); applyDayRange(this.value)" />
+            <span class="day-badge" id="dayBadge">10 días</span>
+          </div>
+          <div class="date-divider">|</div>
+          <label>DESDE</label>
+          <input type="date" id="filterFrom" onchange="syncRangeFromDates()" />
+          <label>HASTA</label>
+          <input type="date" id="filterTo" onchange="syncRangeFromDates()" />
+          <button class="btn" onclick="loadTimeseries()">APLICAR</button>
+          <button class="btn ghost" onclick="resetFilters()">RESET</button>
+        </div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="timeseriesChart"></canvas>
+        </div>
+      </div>
+
+      <!-- FILA: BARRAS POR HORA + TENDENCIA DIARIA -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+
+        <div class="card">
+          <div class="card-title"><span>◆</span> PROMEDIO OPERATIVO POR HORA</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="byHourChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>◆</span> COMPORTAMIENTO DIARIO</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="byDayChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- HEATMAP -->
+      <div class="card">
+        <div class="card-title"><span>◆</span> ZONAS DE RIESGO: HISTÓRICO DE CAÍDAS</div>
+        <canvas id="heatmapChart" style="width:100%;height:160px"></canvas>
+      </div>
+
+      <!-- ANOMALÍAS -->
+      <div class="card">
+        <div class="card-title"><span>◆</span> ALERTAS CRÍTICAS RECIENTES</div>
+        <div style="overflow-x:auto">
+          <table class="anomaly-table">
+            <thead>
+              <tr>
+                <th>TIMESTAMP</th>
+                <th>TIENDAS</th>
+                <th>PROMEDIO HORA</th>
+                <th>DESVIACIÓN</th>
+              </tr>
+            </thead>
+            <tbody id="anomalyBody">
+              <tr>
+                <td colspan="4" style="color:var(--muted);padding:1rem">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /col-left -->
+
+    <!-- ═══════════ COL DERECHA — CHATBOT ═══════════ -->
+    <div class="col-right">
+      <div class="card chat-card">
+        <div class="card-title"><span>◆</span> ASISTENTE DE DATOS <span id="chatStatus"></span></div>
+
+        <div class="suggested-queries" id="suggestedQueries">
+          <div
+            style="font-family:var(--font-mono);font-size:0.6rem;color:var(--muted);margin-bottom:0.25rem;letter-spacing:0.08em">
+            PREGUNTAS SUGERIDAS</div>
+          <button class="sq-btn" onclick="sendSuggestion(this)">¿Cuál fue el día con más tiendas disponibles?</button>
+          <button class="sq-btn" onclick="sendSuggestion(this)">¿Cómo se calcula el Índice de Salud
+            Operacional?</button>
+          <button class="sq-btn" onclick="sendSuggestion(this)">¿Qué significan la estabilidad, confiabilidad y
+            cobertura?</button>
+          <button class="sq-btn" onclick="sendSuggestion(this)">¿Cómo funciona el simulador de impacto de
+            negocio?</button>
+          <button class="sq-btn" onclick="sendSuggestion(this)">¿Qué impacto financiero tienen las caídas
+            críticas?</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input-area">
+          <textarea id="chatInput" placeholder="Pregunta sobre los datos..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+            oninput="this.style.height='48px';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button class="chat-send-btn" id="sendBtn" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,20 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Configuración local de IDEs
+.vscode/
+.idea/
+
+# Variables de entorno
+.env
+
+# NOTA: NO estamos ignorando 'availability.db' porque 
+# es necesario para que el evaluador/Railway pueda ver los datos.
