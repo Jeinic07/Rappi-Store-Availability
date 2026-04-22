@@ -49,6 +49,9 @@ def create_app() -> Flask:
     return app
 
 
+# Crear la instancia global para que Gunicorn pueda encontrarla como 'app:app'
+app = create_app()
+
 if __name__ == "__main__":
     if not os.path.exists(DB_PATH):
         print(f"❌ No se encontró la base de datos: {DB_PATH}")
@@ -56,6 +59,5 @@ if __name__ == "__main__":
     else:
         print("✅ Base de datos encontrada:", DB_PATH)
         print("🚀 Servidor corriendo en: http://localhost:5000")
-        app = create_app()
         # Escuchar en 0.0.0.0 es obligatorio para desplegar en Railway
         app.run(host="0.0.0.0", debug=DEBUG, port=SERVER_PORT)
